@@ -1,0 +1,8 @@
+sample:
+  name: Accelerometer sample
+tests:
+  test_build:
+    build_only: true
+    build_on_all: true
+    platform_whitelist: actinius_icarus_ns
+    tags: ci_build
