@@ -12,14 +12,14 @@
 #define AT_XSYSTEMMODE "AT\%XSYSTEMMODE=0,0,1,0"
 #define AT_CFUN        "AT+CFUN=1"
 
-#ifdef CONFIG_BOARD_NRF9160_PCA10090NS
+#if defined(CONFIG_BOARD_NRF9160_PCA10090NS) || defined(CONFIG_BOARD_ACTINIUS_ICARUS_NS)
 #define AT_MAGPIO      "AT\%XMAGPIO=1,0,0,1,1,1574,1577"
 #endif
 
 static const char     update_indicator[] = {'\\', '|', '/', '-'};
 static const char     at_commands[][31]  = {
 				AT_XSYSTEMMODE,
-#ifdef CONFIG_BOARD_NRF9160_PCA10090NS
+#if defined(CONFIG_BOARD_NRF9160_PCA10090NS) || defined(CONFIG_BOARD_ACTINIUS_ICARUS_NS)
 				AT_MAGPIO,
 #endif
 				AT_CFUN
