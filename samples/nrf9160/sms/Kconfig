@@ -1,0 +1,16 @@
+# Kconfig - Actinius Icarus board configuration
+#
+# Copyright (c) 2019 Actinius
+#
+# SPDX-License-Identifier: Apache-2.0
+
+menu "SMS sample"
+config SMSC_NUMBER
+	string "SMSC number"
+	default "46707000440"
+
+endmenu
+
+menu "Zephyr Kernel"
+source "$ZEPHYR_BASE/Kconfig.zephyr"
+endmenu
