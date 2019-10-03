@@ -16,23 +16,23 @@
 #define AT_MAGPIO      "AT\%XMAGPIO=1,0,0,1,1,1574,1577"
 #endif
 
-static const char     update_indicator[] = {'\\', '|', '/', '-'};
-static const char     at_commands[][31]  = {
-				AT_XSYSTEMMODE,
+static const char update_indicator[] = { '\\', '|', '/', '-' };
+static const char at_commands[][31] = {
+	AT_XSYSTEMMODE,
 #if defined(CONFIG_BOARD_NRF9160_PCA10090NS) || defined(CONFIG_BOARD_ACTINIUS_ICARUS_NS)
-				AT_MAGPIO,
+	AT_MAGPIO,
 #endif
-				AT_CFUN
-			};
+	AT_CFUN
+};
 
-static int            fd;
+static int fd;
 
-static char           nmea_strings[10][NRF_GNSS_NMEA_MAX_LEN];
-static u32_t          nmea_string_cnt;
+static char nmea_strings[10][NRF_GNSS_NMEA_MAX_LEN];
+static u32_t nmea_string_cnt;
 
-static bool           got_first_fix;
-static bool           update_terminal;
-static u64_t          fix_timestamp;
+static bool got_first_fix;
+static bool update_terminal;
+static u64_t fix_timestamp;
 nrf_gnss_data_frame_t last_fix;
 
 void bsd_recoverable_error_handler(uint32_t error)
@@ -47,9 +47,9 @@ void bsd_irrecoverable_error_handler(uint32_t error)
 
 static int enable_gps(void)
 {
-	int  at_sock;
-	int  bytes_sent;
-	int  bytes_received;
+	int at_sock;
+	int bytes_sent;
+	int bytes_received;
 	char buf[2];
 
 	at_sock = socket(AF_LTE, 0, NPROTO_AT);
@@ -83,14 +83,14 @@ static int enable_gps(void)
 
 static int init_app(void)
 {
-	u16_t fix_retry     = 0;
-	u16_t fix_interval  = 1;
-	u16_t nmea_mask     = NRF_CONFIG_NMEA_GSV_MASK |
-			      NRF_CONFIG_NMEA_GSA_MASK |
-			      NRF_CONFIG_NMEA_GLL_MASK |
-			      NRF_CONFIG_NMEA_GGA_MASK |
-			      NRF_CONFIG_NMEA_RMC_MASK;
-	int   retval;
+	u16_t fix_retry = 0;
+	u16_t fix_interval = 1;
+	u16_t nmea_mask = NRF_CONFIG_NMEA_GSV_MASK |
+			  NRF_CONFIG_NMEA_GSA_MASK |
+			  NRF_CONFIG_NMEA_GLL_MASK |
+			  NRF_CONFIG_NMEA_GGA_MASK |
+			  NRF_CONFIG_NMEA_RMC_MASK;
+	int retval;
 
 	if (enable_gps() != 0) {
 		printk("Failed to enable GPS\n");
@@ -155,9 +155,9 @@ static int init_app(void)
 
 static void print_satellite_stats(nrf_gnss_data_frame_t *pvt_data)
 {
-	u8_t  tracked          = 0;
-	u8_t  in_fix           = 0;
-	u8_t  unhealthy        = 0;
+	u8_t tracked = 0;
+	u8_t in_fix = 0;
+	u8_t unhealthy = 0;
 
 	for (int i = 0; i < NRF_GNSS_MAX_SATELLITES; ++i) {
 
@@ -167,23 +167,23 @@ static void print_satellite_stats(nrf_gnss_data_frame_t *pvt_data)
 			tracked++;
 
 			if (pvt_data->pvt.sv[i].flags &
-					NRF_GNSS_PVT_FLAG_FIX_VALID_BIT) {
+			    NRF_GNSS_PVT_FLAG_FIX_VALID_BIT) {
 				in_fix++;
 			}
 
 			if (pvt_data->pvt.sv[i].flags &
-					NRF_GNSS_SV_FLAG_UNHEALTHY) {
+			    NRF_GNSS_SV_FLAG_UNHEALTHY) {
 				unhealthy++;
 			}
 		}
 	}
 
 	printk("Tracking: %d Using: %d Unhealthy: %d", tracked,
-						       in_fix,
-						       unhealthy);
+	       in_fix,
+	       unhealthy);
 
 	printk("\nSeconds since last fix %lld\n",
-			(k_uptime_get() - fix_timestamp) / 1000);
+	       (k_uptime_get() - fix_timestamp) / 1000);
 }
 
 static void print_pvt_data(nrf_gnss_data_frame_t *pvt_data)
@@ -194,11 +194,11 @@ static void print_pvt_data(nrf_gnss_data_frame_t *pvt_data)
 	printf("Speed:      %f\n", pvt_data->pvt.speed);
 	printf("Heading:    %f\n", pvt_data->pvt.heading);
 	printk("Date:       %02u-%02u-%02u\n", pvt_data->pvt.datetime.day,
-					       pvt_data->pvt.datetime.month,
-					       pvt_data->pvt.datetime.year);
+	       pvt_data->pvt.datetime.month,
+	       pvt_data->pvt.datetime.year);
 	printk("Time (UTC): %02u:%02u:%02u\n", pvt_data->pvt.datetime.hour,
-					       pvt_data->pvt.datetime.minute,
-					      pvt_data->pvt.datetime.seconds);
+	       pvt_data->pvt.datetime.minute,
+	       pvt_data->pvt.datetime.seconds);
 }
 
 static void print_nmea_data(void)
@@ -222,8 +222,8 @@ int process_gps_data(nrf_gnss_data_frame_t *gps_data)
 		case NRF_GNSS_PVT_DATA_ID:
 
 			if ((gps_data->pvt.flags &
-				NRF_GNSS_PVT_FLAG_FIX_VALID_BIT)
-				== NRF_GNSS_PVT_FLAG_FIX_VALID_BIT) {
+			     NRF_GNSS_PVT_FLAG_FIX_VALID_BIT)
+			    == NRF_GNSS_PVT_FLAG_FIX_VALID_BIT) {
 
 				if (!got_first_fix) {
 					got_first_fix = true;
@@ -256,7 +256,7 @@ int process_gps_data(nrf_gnss_data_frame_t *gps_data)
 int main(void)
 {
 	nrf_gnss_data_frame_t gps_data;
-	u8_t		      cnt = 0;
+	u8_t cnt = 0;
 
 	printk("Staring GPS application\n");
 
@@ -280,11 +280,11 @@ int main(void)
 			printk("\033[2J");
 			print_satellite_stats(&gps_data);
 			printk("\nScanning [%c] ",
-					update_indicator[cnt%4]);
+			       update_indicator[cnt % 4]);
 		}
 
 		if (((k_uptime_get() - fix_timestamp) >= 1) &&
-		     (got_first_fix)) {
+		    (got_first_fix)) {
 			printk("\033[1;1H");
 			printk("\033[2J");
 

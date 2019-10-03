@@ -7,10 +7,10 @@
 #include <adc.h>
 #include <hal/nrf_saadc.h>
 
-#define BATVOLT_R1 4.7f // MOhm
-#define BATVOLT_R2 10.0f // MOhm
-#define INPUT_VOLT_RANGE 3.6f // Volts
-#define VALUE_RANGE_10_BIT 1.023 // (2^10 - 1) / 1000
+#define BATVOLT_R1 4.7f                 // MOhm
+#define BATVOLT_R2 10.0f                // MOhm
+#define INPUT_VOLT_RANGE 3.6f           // Volts
+#define VALUE_RANGE_10_BIT 1.023        // (2^10 - 1) / 1000
 
 #define ADC_DEV "ADC_0"
 
@@ -24,7 +24,7 @@
 #define BUFFER_SIZE 1
 static s16_t m_sample_buffer[BUFFER_SIZE];
 
-static struct device* adc_dev;
+static struct device *adc_dev;
 
 static const struct adc_channel_cfg m_1st_channel_cfg = {
 	.gain = ADC_GAIN,
@@ -36,7 +36,7 @@ static const struct adc_channel_cfg m_1st_channel_cfg = {
 #endif
 };
 
-static int get_battery_voltage(u16_t* battery_voltage)
+static int get_battery_voltage(u16_t *battery_voltage)
 {
 	int err;
 
@@ -51,40 +51,40 @@ static int get_battery_voltage(u16_t* battery_voltage)
 		return -1;
 	}
 
-	err = adc_read(adc_dev, &sequence);	
-    if (err) {
-        printk("ADC read err: %d\n", err);
+	err = adc_read(adc_dev, &sequence);
+	if (err) {
+		printk("ADC read err: %d\n", err);
 
-        return err;
-    }
+		return err;
+	}
 
-    float sample_value = 0;
+	float sample_value = 0;
 	for (int i = 0; i < BUFFER_SIZE; i++) {
-        sample_value += (float) m_sample_buffer[i];
-    }
-    sample_value /= BUFFER_SIZE;
+		sample_value += (float) m_sample_buffer[i];
+	}
+	sample_value /= BUFFER_SIZE;
 
-    *battery_voltage = (u16_t)(sample_value * (INPUT_VOLT_RANGE / VALUE_RANGE_10_BIT) * ((BATVOLT_R1 + BATVOLT_R2) / BATVOLT_R2));
-	
-    return 0;
+	*battery_voltage = (u16_t)(sample_value * (INPUT_VOLT_RANGE / VALUE_RANGE_10_BIT) * ((BATVOLT_R1 + BATVOLT_R2) / BATVOLT_R2));
+
+	return 0;
 }
 
-bool init_adc() 
+bool init_adc()
 {
-    int err;
+	int err;
 
 	adc_dev = device_get_binding(ADC_DEV);
 	if (!adc_dev) {
 		printk("Error getting " ADC_DEV " failed\n");
-        
-        return false;
+
+		return false;
 	}
 
 	err = adc_channel_setup(adc_dev, &m_1st_channel_cfg);
 	if (err) {
 		printk("Error in adc setup: %d\n", err);
 
-        return false;
+		return false;
 	}
 
 	// Trigger offset calibration
@@ -92,21 +92,21 @@ bool init_adc()
 	// the first result will be incorrect.
 	NRF_SAADC_NS->TASKS_CALIBRATEOFFSET = 1;
 
-    // discard incorrect sample
-    u16_t dummy = 0;
-    get_battery_voltage(&dummy);
+	// discard incorrect sample
+	u16_t dummy = 0;
+	get_battery_voltage(&dummy);
 
-    return true;
+	return true;
 }
 
 int main(void)
 {
-    init_adc();
+	init_adc();
 
 	while (1) {
-        u16_t battery_voltage = 0;
-        get_battery_voltage(&battery_voltage);
-        printk("Battery voltage: %u mV\n", battery_voltage);
+		u16_t battery_voltage = 0;
+		get_battery_voltage(&battery_voltage);
+		printk("Battery voltage: %u mV\n", battery_voltage);
 
 		k_sleep(K_MSEC(2000));
 	}
