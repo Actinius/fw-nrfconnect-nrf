@@ -181,15 +181,17 @@ static int at_parse_process_element(const char **str,
 		tmpstr++;
 	} else if (state == NUMBER) {
 		char *next;
-		int value = (u32_t)strtoul(tmpstr, &next, 10);
+		u64_t value = strtoull(tmpstr, &next, 10);
 
 		tmpstr = next;
 
 		if (value <= USHRT_MAX) {
 			at_params_short_put(list, index, (u16_t)value);
+		} else if (value <= UINT_MAX){
+			at_params_int_put(list, index, (u32_t)value);
 		} else {
-			at_params_int_put(list, index, value);
-		}
+            at_params_long_long_put(list, index, value);
+        }
 
 	} else if (state == SMS_PDU) {
 		const char *start_ptr = tmpstr;

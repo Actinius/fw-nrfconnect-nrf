@@ -268,7 +268,7 @@ static const struct modem_info_data imsi_data = {
 	.data_name	= IMSI_DATA_NAME,
 	.param_index	= IMSI_PARAM_INDEX,
 	.param_count	= IMSI_PARAM_COUNT,
-	.data_type	= AT_PARAM_TYPE_STRING,
+	.data_type	= AT_PARAM_TYPE_NUM_LONG_LONG,
 };
 
 static const struct modem_info_data imei_data = {
@@ -276,7 +276,7 @@ static const struct modem_info_data imei_data = {
 	.data_name	= MODEM_IMEI_DATA_NAME,
 	.param_index	= MODEM_IMEI_PARAM_INDEX,
 	.param_count	= MODEM_IMEI_PARAM_COUNT,
-	.data_type	= AT_PARAM_TYPE_STRING,
+	.data_type	= AT_PARAM_TYPE_NUM_LONG_LONG,
 };
 
 static const struct modem_info_data *const modem_data[] = {
@@ -415,12 +415,52 @@ int modem_info_short_get(enum modem_info info, u16_t *buf)
 	return sizeof(u16_t);
 }
 
+int modem_info_long_long_get(enum modem_info info, u64_t *buf)
+{
+	int err;
+	char recv_buf[CONFIG_MODEM_INFO_BUFFER_SIZE] = {0};
+	int cmd_length = 0;
+
+	if (buf == NULL) {
+		return -EINVAL;
+	}
+
+	if (modem_data[info]->data_type == AT_PARAM_TYPE_STRING) {
+		return -EINVAL;
+	}
+
+	err = at_cmd_write(modem_data[info]->cmd,
+			   recv_buf,
+			   CONFIG_MODEM_INFO_BUFFER_SIZE,
+			   NULL);
+
+	if (err != 0) {
+		return -EIO;
+	}
+
+	err = modem_info_parse(modem_data[info], &recv_buf[cmd_length]);
+
+	if (err) {
+		return err;
+	}
+
+	err = at_params_long_long_get(&m_param_list,
+				  modem_data[info]->param_index,
+				  buf);
+
+	if (err) {
+		return err;
+	}
+
+	return sizeof(u64_t);
+}
+
 int modem_info_string_get(enum modem_info info, char *buf)
 {
 	int err;
 	size_t len = 0;
 	char recv_buf[CONFIG_MODEM_INFO_BUFFER_SIZE] = {0};
-	u16_t param_value;
+	u64_t param_value;
 	int cmd_length = 0;
 
 	if (buf == NULL) {
@@ -446,14 +486,25 @@ int modem_info_string_get(enum modem_info info, char *buf)
 	if (modem_data[info]->data_type == AT_PARAM_TYPE_NUM_SHORT) {
 		err = at_params_short_get(&m_param_list,
 					  modem_data[info]->param_index,
-					  &param_value);
+					  (u16_t*)&param_value);
 		if (err) {
 			LOG_ERR("Unable to obtain short: %d", err);
 			return err;
 		}
 
 		err = snprintf(buf, MODEM_INFO_MAX_RESPONSE_SIZE,
-				"%d", param_value);
+				"%d", (u16_t)param_value);
+	} else if (modem_data[info]->data_type == AT_PARAM_TYPE_NUM_LONG_LONG) {
+		err = at_params_long_long_get(&m_param_list,
+					  modem_data[info]->param_index,
+					  &param_value);
+		if (err) {
+			LOG_ERR("Unable to obtain long long: %d", err);
+			return err;
+		}
+
+		err = snprintf(buf, MODEM_INFO_MAX_RESPONSE_SIZE,
+				"%llu", param_value);
 	} else if (modem_data[info]->data_type == AT_PARAM_TYPE_STRING) {
 		len = MODEM_INFO_MAX_RESPONSE_SIZE;
 		err = at_params_string_get(&m_param_list,

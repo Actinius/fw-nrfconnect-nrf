@@ -114,7 +114,13 @@ static int modem_data_get(struct lte_param *param)
 			return ret;
 		}
 	} else if (data_type == AT_PARAM_TYPE_NUM_SHORT) {
-		ret = modem_info_short_get(param->type, &param->value);
+		ret = modem_info_short_get(param->type, (u16_t*)&param->value);
+		if (ret < 0) {
+			LOG_ERR("Link data not obtained: %d", ret);
+			return ret;
+		}
+	} else if (data_type == AT_PARAM_TYPE_NUM_LONG_LONG) {
+		ret = modem_info_long_long_get(param->type, &param->value);
 		if (ret < 0) {
 			LOG_ERR("Link data not obtained: %d", ret);
 			return ret;

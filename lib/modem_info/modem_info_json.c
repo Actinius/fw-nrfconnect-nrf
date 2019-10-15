@@ -5,6 +5,7 @@
  */
 
 #include <zephyr.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <cJSON.h>
@@ -78,10 +79,16 @@ static int json_add_data(struct lte_param *param, cJSON *json_obj)
 	    param->type != MODEM_INFO_AREA_CODE) {
 		total_len += strlen(param->value_string);
 		ret += json_add_str(json_obj, data_name, param->value_string);
+	} else if (data_type == AT_PARAM_TYPE_NUM_LONG_LONG) {
+        char str_value[MODEM_INFO_MAX_RESPONSE_SIZE];
+        memset(str_value, 0, MODEM_INFO_MAX_RESPONSE_SIZE);
+        snprintf(str_value, MODEM_INFO_MAX_RESPONSE_SIZE, "%llu", param->value);
+        total_len += strlen(str_value);
+		ret += json_add_str(json_obj, data_name, str_value);
 	} else {
-		total_len += sizeof(u16_t);
-		ret += json_add_num(json_obj, data_name, param->value);
-	}
+        total_len += sizeof(u16_t);
+        ret += json_add_num(json_obj, data_name, (u16_t)param->value);
+    }
 
 	if (ret < 0) {
 		return ret;

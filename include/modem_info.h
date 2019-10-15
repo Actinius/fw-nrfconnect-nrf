@@ -61,7 +61,7 @@ enum modem_info {
 
 /**@brief LTE parameter data. **/
 struct lte_param {
-	u16_t value; /**< The retrieved value. */
+	u64_t value; /**< The retrieved value. */
 	char value_string[MODEM_INFO_MAX_RESPONSE_SIZE]; /**< The retrieved value in string format. */
 	char *data_name; /**< The name of the information type. */
 	enum modem_info type; /**< The information type. */
@@ -163,6 +163,20 @@ int modem_info_string_get(enum modem_info info, char *buf);
  *         Otherwise, a (negative) error code is returned.
  */
 int modem_info_short_get(enum modem_info info, u16_t *buf);
+
+/** @brief Request the current modem status of any predefined
+ *         information value as a long long.
+ *
+ * If the data parameter returned by the modem is originally a
+ * string, this function fails.
+ *
+ * @param info The requested information type.
+ * @param buf  The long long where to store the information.
+ *
+ * @return Length of received data if the operation was successful.
+ *         Otherwise, a (negative) error code is returned.
+ */
+int modem_info_long_long_get(enum modem_info info, u64_t *buf);
 
 /** @brief Request the name of a modem information data type.
  *
